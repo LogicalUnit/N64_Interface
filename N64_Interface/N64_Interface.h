@@ -39,10 +39,11 @@ typedef struct {
   char stick_y;
 } N64_Status;
 
+//Number of bytes in a status struct
+const int status_size = sizeof(N64_Status);
+
 //Print contents of a status response to serial
 void PrintN64Status(const N64_Status& status); 
-
-const int status_size = sizeof(N64_Status);
 
 //Interface to the Nintendo 64 controller
 class N64_Interface {
@@ -54,6 +55,7 @@ public:
   void sendStatusQuery();
   void receiveStatus(N64_Status& status);
 
+  //send or receive bytes over the data wire
   void send(char const* input, unsigned int length);
   void receive(char* output, unsigned int length);
   
