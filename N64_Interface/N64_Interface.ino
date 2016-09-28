@@ -21,8 +21,8 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   noInterrupts();
-  interface.send(&COMMAND_STATUS, 1); //this is how we send the status query (1 byte)
-  interface.receive((char*) &status, 4); //this is how we receive the status response (4 bytes)
+  interface.sendStatusQuery(); //this is how we send the status query (1 byte)
+  interface.receiveStatus(status); //this is how we receive the status response (4 bytes)
   interrupts();
 
   if (memcmp(&status, &oldStatus, status_size)) { //if the status has changed

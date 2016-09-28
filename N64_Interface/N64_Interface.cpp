@@ -133,3 +133,15 @@ void PrintN64Status(const N64_Status& status)
   Serial.println();
   Serial.flush();
 }
+
+void N64_Interface::sendStatusQuery()
+{
+  send(&COMMAND_STATUS, 1);
+}
+
+void N64_Interface::receiveStatus(N64_Status& status)
+{
+  receive((char*)&status, status_size);
+}
+
+

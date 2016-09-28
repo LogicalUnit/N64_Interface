@@ -50,6 +50,10 @@ class N64_Interface {
 public:
   N64_Interface();
 
+  //convenience functions
+  void sendStatusQuery();
+  void receiveStatus(N64_Status& status);
+
   void send(char const* input, unsigned int length);
   void receive(char* output, unsigned int length);
   
