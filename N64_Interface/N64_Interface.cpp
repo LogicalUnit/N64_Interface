@@ -15,9 +15,10 @@
 #define NOP         asm volatile ("nop\n\t")
 
 
-N64_Interface::N64_Interface(){
-  digitalWrite(N64_PIN, LOW); //do not make HIGH! This will fry the controller!
-  pinMode(N64_PIN, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
+N64_Interface::N64_Interface(int data_pin){
+  data_pin_ = data_pin;
+  pinMode(data_pin_, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
+  digitalWrite(data_pin_, LOW); //do not make HIGH! This will fry the controller!
 }
 
 
@@ -32,28 +33,28 @@ void N64_Interface::send(char const* input, unsigned int length) {
 
       if (currentBit) {
         //send logical 1
-        N64_LOW;
+        low();
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
-        N64_HIGH;
+        high();
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
         } else {
         //send logical 0
-        N64_LOW;
+        low();
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
-        N64_HIGH;
+        high();
         NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
       }
     }
   }
 
   //send stop bit
-  N64_LOW;
+  low();
   NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
-  N64_HIGH;
+  high();
 }
 
 void N64_Interface::receive(char* output, unsigned int length) {
@@ -65,24 +66,24 @@ void N64_Interface::receive(char* output, unsigned int length) {
     char currentByte = 0;
 
     for (int j = 0; j < 8; j++) {
-      while (N64_QUERY); //wait for start
+      while (query()); //wait for start
 
       //wait 2 microseconds
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
 
       currentByte <<= 1; //shift left
-      currentByte |= N64_QUERY; //add latest bit
+      currentByte |= query(); //add latest bit
 
-      while(!N64_QUERY); //wait for end
+      while(!query()); //wait for end
     }
 
     output[i] = currentByte;
   }
 
   //wait for stop bit
-  while(N64_QUERY);
-  while(!N64_QUERY);
+  while(query());
+  while(!query());
 
   wdt_disable();  
 }
@@ -144,4 +145,19 @@ void N64_Interface::receiveStatus(N64_Status& status)
   receive((char*)&status, status_size);
 }
 
+void N64_Interface::high()
+{
+  (DDRD &= ~(1<<data_pin_));
+}
+
+void N64_Interface::low()
+{
+  (DDRD |= (1<<data_pin_));
+}
+
+bool N64_Interface::query()
+{
+  return (PIND & (1<<N64_PIN)); //this works
+  //return (PIND & (1<<data_pin_)); //this doesn't
+}
 

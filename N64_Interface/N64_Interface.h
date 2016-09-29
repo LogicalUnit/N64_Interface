@@ -49,7 +49,7 @@ void PrintN64Status(const N64_Status& status);
 class N64_Interface {
 
 public:
-  N64_Interface();
+  N64_Interface(int data_pin = N64_PIN);
 
   //convenience functions
   void sendStatusQuery();
@@ -58,6 +58,16 @@ public:
   //send or receive bytes over the data wire
   void send(char const* input, unsigned int length);
   void receive(char* output, unsigned int length);
+
+  //pull the data line high or low
+  void high();
+  void low();
+
+  //sample data line
+  bool query();
+
+private:
+  int data_pin_;  
   
 };
 
