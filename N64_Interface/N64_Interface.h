@@ -54,7 +54,7 @@ void PrintN64Status(const N64_Status& status);
 class N64_Interface {
 
 public:
-  //Only create ONLY ONE instance at this point.
+  //Create ONLY ONE instance at this point.
   N64_Interface(); 
 
   //Convenience functions. You should probably use these.
