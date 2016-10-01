@@ -2,23 +2,15 @@
 #include "Arduino.h"
 #include <avr/wdt.h> //For watchdog
 
-//Send a logical high to the controller
-#define N64_HIGH    (DDRD &= ~(1<<N64_PIN))
-
-//Send a logical low to the controller
-#define N64_LOW     (DDRD |= (1<<N64_PIN))
-
-//Query the state of the Data pin
-#define N64_QUERY   ((PIND & (1<<N64_PIN)) != 0)
 
 //Do nothing for 1 cycle, 1/16 of a microsecond on Arduino Uno
 #define NOP         asm volatile ("nop\n\t")
 
 
-N64_Interface::N64_Interface(int data_pin){
-  data_pin_ = data_pin;
-  pinMode(data_pin_, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
-  digitalWrite(data_pin_, LOW); //do not make HIGH! This will fry the controller!
+N64_Interface::N64_Interface(){
+  //pinMode(data_pin_, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
+  digitalWrite(N64_DATA_PIN, LOW); //do not make HIGH! This will fry the controller!
+  high(); //high means idle
 }
 
 
@@ -59,6 +51,8 @@ void N64_Interface::send(char const* input, unsigned int length) {
 
 void N64_Interface::receive(char* output, unsigned int length) {
 
+  //char mask = data_pin_mask_;
+
   wdt_reset();  //pat the dog
   wdt_enable(WDTO_30MS); //timeout after 30ms
   
@@ -67,7 +61,7 @@ void N64_Interface::receive(char* output, unsigned int length) {
 
     for (int j = 0; j < 8; j++) {
       while (query()); //wait for start
-
+   
       //wait 2 microseconds
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
@@ -147,17 +141,17 @@ void N64_Interface::receiveStatus(N64_Status& status)
 
 void N64_Interface::high()
 {
-  (DDRD &= ~(1<<data_pin_));
+  DDRD &= ~mask_; //make data pin an input (floating, controller has a pull-up resistor)
 }
 
 void N64_Interface::low()
 {
-  (DDRD |= (1<<data_pin_));
+  DDRD |= mask_; //make data pin an output (low)
 }
 
 bool N64_Interface::query()
 {
-  return (PIND & (1<<N64_PIN)); //this works
-  //return (PIND & (1<<data_pin_)); //this doesn't
+  //return (PIND & (1<<N64_DATA_PIN)); //this works
+  //return (PIND & (1<<data_pin_)); //this doesn't, accessing the member variable is too slow (I have removed the member variable for now)
+  return PIND & mask_; //mask_ is a static const, but I want to use a member variable somehow
 }
-

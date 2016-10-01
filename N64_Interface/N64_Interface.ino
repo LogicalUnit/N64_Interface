@@ -12,7 +12,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  Serial.println("Restarting");
+  Serial.println("Starting");
 
   //Start by clearing the status variables
   memset(&status, 0, status_size);

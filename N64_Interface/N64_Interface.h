@@ -1,13 +1,18 @@
 /**
  * This header file provides an interface for an Arduino Uno to communicate with a Nintendo 64 controller
- * Connect the controller to 3v3, GND and Data
+ * Connect the controller to GND, Data, 3V3.
  */
 
 #ifndef N64_Interface_H
 #define N64_Interface_H
 
-//Connect the N64 Data wire to this pin on Arduino Uno
-#define N64_PIN 2
+/**
+ * I am trying to replace this macro with a member variable inside the Interface class so we can have multiple controllers on different data pins
+ * However, the overhead of accessing a member variable slows down the code and breaks the timing
+ * Until I find a way to fix this, you must create ONLY ONE instance of the Inteface class,
+ * and you must specify the data pin here. Choose 2, 3, 4, 5, 6, or 7.
+ */
+#define N64_DATA_PIN 2
 
 // status buttons1:
 const char BUTTON_D_RIGHT = 0x01;
@@ -49,25 +54,26 @@ void PrintN64Status(const N64_Status& status);
 class N64_Interface {
 
 public:
-  N64_Interface(int data_pin = N64_PIN);
+  //Only create ONLY ONE instance at this point.
+  N64_Interface(); 
 
-  //convenience functions
+  //Convenience functions. You should probably use these.
   void sendStatusQuery();
   void receiveStatus(N64_Status& status);
 
-  //send or receive bytes over the data wire
+  //Send or receive a buffer of bytes over the data wire.
   void send(char const* input, unsigned int length);
   void receive(char* output, unsigned int length);
 
-  //pull the data line high or low
+  //Pull the data line high or low. High is idle.
   void high();
   void low();
 
-  //sample data line
+  //Sample the data line.
   bool query();
 
 private:
-  int data_pin_;  
+  static const char mask_ = 1<<N64_DATA_PIN; //I want to replace this with a fast member variable somehow.
   
 };
 
