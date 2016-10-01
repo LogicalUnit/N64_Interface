@@ -9,7 +9,7 @@
 /**
  * I am trying to replace this macro with a member variable inside the Interface class so we can have multiple controllers on different data pins
  * However, the overhead of accessing a member variable slows down the code and breaks the timing
- * Until I find a way to fix this, you must create ONLY ONE instance of the Inteface class,
+ * Until I find a way to fix this, you must create ONLY ONE instance of the Interface class,
  * and you must specify the data pin here. Choose 2, 3, 4, 5, 6, or 7.
  */
 #define N64_DATA_PIN 2
@@ -33,7 +33,7 @@ const char BUTTON_R = 0x10;
 const char BUTTON_L = 0x20;
 
 //Controller commands
-const char COMMAND_IDENFITY = 0x00;
+const char COMMAND_IDENTIFY = 0x00;
 const char COMMAND_STATUS = 0x01;
 
 //Structure for receiving status responses
