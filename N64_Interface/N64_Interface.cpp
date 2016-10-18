@@ -7,9 +7,9 @@
 #define NOP         asm volatile ("nop\n\t")
 
 
-N64_Interface::N64_Interface(){
+N64_Interface::N64_Interface(int pin): mask_(1<<pin) {
   //pinMode(data_pin_, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
-  digitalWrite(N64_DATA_PIN, LOW); //do not make HIGH! This will fry the controller!
+  digitalWrite(pin, LOW); //do not make HIGH! This will fry the controller!
   high(); //high means idle
 }
 
@@ -51,8 +51,8 @@ void N64_Interface::send(char const* input, unsigned int length) {
 
 void N64_Interface::receive(char* output, unsigned int length) {
 
-  //char mask = data_pin_mask_;
-
+  char mask = mask_; //Create a local copy for speed reasons
+  
   wdt_reset();  //pat the dog
   wdt_enable(WDTO_30MS); //timeout after 30ms
   
@@ -60,24 +60,27 @@ void N64_Interface::receive(char* output, unsigned int length) {
     char currentByte = 0;
 
     for (int j = 0; j < 8; j++) {
-      while (query()); //wait for start
+      //while (query()); //wait for start
+      while(PIND & mask);
    
-      //wait 2 microseconds
-      NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
+      //wait 1 microsecond
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
 
       currentByte <<= 1; //shift left
-      currentByte |= query(); //add latest bit
+      currentByte |= (PIND & mask) != 0; //add latest bit
 
-      while(!query()); //wait for end
+      //while(!query()); //wait for end
+      while(!(PIND & mask));
     }
 
     output[i] = currentByte;
   }
 
   //wait for stop bit
-  while(query());
-  while(!query());
+  //while(query());
+  while(PIND & mask);
+  //while(!query());
+  while(!(PIND & mask));
 
   wdt_disable();  
 }
@@ -149,9 +152,11 @@ void N64_Interface::low()
   DDRD |= mask_; //make data pin an output (low)
 }
 
+/*
 bool N64_Interface::query()
 {
   //return (PIND & (1<<N64_DATA_PIN)); //this works
   //return (PIND & (1<<data_pin_)); //this doesn't, accessing the member variable is too slow (I have removed the member variable for now)
   return PIND & mask_; //mask_ is a static const, but I want to use a member variable somehow
 }
+*/

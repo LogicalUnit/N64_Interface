@@ -6,13 +6,8 @@
 #ifndef N64_Interface_H
 #define N64_Interface_H
 
-/**
- * I am trying to replace this macro with a member variable inside the Interface class so we can have multiple controllers on different data pins
- * However, the overhead of accessing a member variable slows down the code and breaks the timing
- * Until I find a way to fix this, you must create ONLY ONE instance of the Interface class,
- * and you must specify the data pin here. Choose 2, 3, 4, 5, 6, or 7.
- */
-#define N64_DATA_PIN 2
+
+const int DEFAULT_DATA_PIN = 2; // If not otherwise specified in the constructor of the N64_Interface object, use this pin
 
 // status buttons1:
 const char BUTTON_D_RIGHT = 0x01;
@@ -33,7 +28,7 @@ const char BUTTON_R = 0x10;
 const char BUTTON_L = 0x20;
 
 //Controller commands
-const char COMMAND_IDENTIFY = 0x00;
+const char COMMAND_IDENFITY = 0x00;
 const char COMMAND_STATUS = 0x01;
 
 //Structure for receiving status responses
@@ -54,8 +49,7 @@ void PrintN64Status(const N64_Status& status);
 class N64_Interface {
 
 public:
-  //Create ONLY ONE instance at this point.
-  N64_Interface(); 
+  N64_Interface(int pin = DEFAULT_DATA_PIN); 
 
   //Convenience functions. You should probably use these.
   void sendStatusQuery();
@@ -65,16 +59,17 @@ public:
   void send(char const* input, unsigned int length);
   void receive(char* output, unsigned int length);
 
+  //Sample the data line.
+  //bool query();
+
+private:
+  char mask_; //Hex representation of the data pin
+
   //Pull the data line high or low. High is idle.
   void high();
   void low();
 
-  //Sample the data line.
-  bool query();
 
-private:
-  static const char mask_ = 1<<N64_DATA_PIN; //I want to replace this with a fast member variable somehow.
-  
 };
 
 #endif
