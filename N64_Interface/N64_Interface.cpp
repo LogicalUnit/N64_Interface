@@ -1,15 +1,24 @@
+/**
+ * Author: John Crain Welsby (john.welsby@gmail.com) in collaboration with Arduino community, especially Nick Gammon.
+ * Date: October 2016
+ * Version: 1.0
+ * 
+ * Implementation of N64_Interface. Specifically designed to run on 16MHz 5V Arduino Uno, or compatible.
+ */
+
+
 #include "N64_Interface.h"
 #include "Arduino.h"
 #include <avr/wdt.h> //For watchdog
 
 
 //Do nothing for 1 cycle, 1/16 of a microsecond on Arduino Uno
-#define NOP         asm volatile ("nop\n\t")
+#define NOP asm volatile ("nop\n\t")
 
 
-N64_Interface::N64_Interface(int pin): mask_(1<<pin) {
-  //pinMode(data_pin_, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
-  digitalWrite(pin, LOW); //do not make HIGH! This will fry the controller!
+N64_Interface::N64_Interface(int data_pin): mask_(1<<data_pin) {
+  //pinMode(data_pin, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
+  digitalWrite(data_pin, LOW); //do not make HIGH! This will fry the controller!
   high(); //high means idle
 }
 
@@ -53,15 +62,14 @@ void N64_Interface::receive(char* output, unsigned int length) {
 
   char mask = mask_; //Create a local copy for speed reasons
   
-  wdt_reset();  //pat the dog
+  wdt_reset();  
   wdt_enable(WDTO_30MS); //timeout after 30ms
   
   for (int i = 0; i < length; i++) {
     char currentByte = 0;
 
     for (int j = 0; j < 8; j++) {
-      //while (query()); //wait for start
-      while(PIND & mask);
+      while(PIND & mask); //wait for low
    
       //wait 1 microsecond
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
@@ -69,17 +77,14 @@ void N64_Interface::receive(char* output, unsigned int length) {
       currentByte <<= 1; //shift left
       currentByte |= (PIND & mask) != 0; //add latest bit
 
-      //while(!query()); //wait for end
-      while(!(PIND & mask));
+      while(!(PIND & mask)); //wait for high
     }
 
     output[i] = currentByte;
   }
 
   //wait for stop bit
-  //while(query());
   while(PIND & mask);
-  //while(!query());
   while(!(PIND & mask));
 
   wdt_disable();  
@@ -134,29 +139,20 @@ void PrintN64Status(const N64_Status& status)
 
 void N64_Interface::sendStatusQuery()
 {
-  send(&COMMAND_STATUS, 1);
+  send(&COMMAND_STATUS, 1); //Pass the status command byte to the send() function.
 }
 
 void N64_Interface::receiveStatus(N64_Status& status)
 {
-  receive((char*)&status, status_size);
+  receive((char*)&status, status_size); //Pass the status struct to the receive() function.
 }
 
 void N64_Interface::high()
 {
-  DDRD &= ~mask_; //make data pin an input (floating, controller has a pull-up resistor)
+  DDRD &= ~mask_; //Make data pin an input (high impedence, simulates high)
 }
 
 void N64_Interface::low()
 {
-  DDRD |= mask_; //make data pin an output (low)
+  DDRD |= mask_; //Make data pin an output (low)
 }
-
-/*
-bool N64_Interface::query()
-{
-  //return (PIND & (1<<N64_DATA_PIN)); //this works
-  //return (PIND & (1<<data_pin_)); //this doesn't, accessing the member variable is too slow (I have removed the member variable for now)
-  return PIND & mask_; //mask_ is a static const, but I want to use a member variable somehow
-}
-*/
