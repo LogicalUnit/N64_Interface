@@ -16,9 +16,11 @@ N64_Status status, oldStatus; //Status of joystick and buttons.
 
 void setup() {
   // put your setup code here, to run once:
+  
   Serial.begin(115200);
-
   Serial.println("Starting");
+
+  noInterrupts(); //Disable interrupts, they interfere with timings.
 
   //Start by clearing the status variables
   memset(&status, 0, status_size);
@@ -28,10 +30,8 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   
-  noInterrupts(); //Disable interrupts, they interfere with timings.
   interface.getStatus(status); //This is how we get the status response.
-  interrupts(); //Timing critical section complete, re-enable interrupts.
-
+  
   if (memcmp(&status, &oldStatus, status_size)) { //If the status has changed since last update.
     PrintN64Status(status); //Print status to serial.
     oldStatus = status; //Remember previous status.
