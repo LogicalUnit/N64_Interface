@@ -34,7 +34,7 @@ const char BUTTON_R = 0x10;
 const char BUTTON_L = 0x20;
 
 //Controller commands (queries to send).
-const char COMMAND_IDENFITY = 0x00;
+const char COMMAND_IDENTIFY = 0x00;
 const char COMMAND_STATUS = 0x01;
 
 //Structure for storing controller status (joystick and buttons).
@@ -58,11 +58,8 @@ public:
   //Specify which pin is connected to the N64 controller's Data wire. Choose pin 2, 3, 4, 5, 6, or 7.
   N64_Interface(int data_pin); 
 
-  //Convenience function. Send the status query byte to the controller.
-  void sendStatusQuery();
-
-  //Convenience function. Receive the status response from the controller.
-  void receiveStatus(N64_Status& status);
+  //Convenience function. Get status of joystick and buttons. Disable interrupts before calling.
+  void getStatus(N64_Status& output);
 
   //Send bytes starting at input to controller, length is number of bytes to send.
   void send(char const* input, unsigned int length);

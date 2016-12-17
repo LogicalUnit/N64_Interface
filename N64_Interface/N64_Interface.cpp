@@ -137,22 +137,20 @@ void PrintN64Status(const N64_Status& status)
   Serial.flush();
 }
 
-void N64_Interface::sendStatusQuery()
+void N64_Interface::getStatus(N64_Status& output)
 {
   send(&COMMAND_STATUS, 1); //Pass the status command byte to the send() function.
+  receive((char*)&output, status_size); //Pass the status struct to the receive() function.
 }
 
-void N64_Interface::receiveStatus(N64_Status& status)
-{
-  receive((char*)&status, status_size); //Pass the status struct to the receive() function.
-}
-
-void N64_Interface::high()
+inline void N64_Interface::high()
 {
   DDRD &= ~mask_; //Make data pin an input (high impedence, simulates high)
 }
 
-void N64_Interface::low()
+inline void N64_Interface::low()
 {
   DDRD |= mask_; //Make data pin an output (low)
 }
+
+

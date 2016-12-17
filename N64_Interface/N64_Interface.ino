@@ -29,8 +29,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   
   noInterrupts(); //Disable interrupts, they interfere with timings.
-  interface.sendStatusQuery(); //This is how we send the status query (1 byte).
-  interface.receiveStatus(status); //This is how we receive the status response (4 bytes).
+  interface.getStatus(status); //This is how we get the status response.
   interrupts(); //Timing critical section complete, re-enable interrupts.
 
   if (memcmp(&status, &oldStatus, status_size)) { //If the status has changed since last update.
