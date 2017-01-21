@@ -58,14 +58,11 @@ public:
   //Specify which pin is connected to the N64 controller's Data wire. Choose pin 2, 3, 4, 5, 6, or 7.
   N64_Interface(int data_pin); 
 
-  //Convenience function. Get status of joystick and buttons. Disable interrupts before calling.
-  void getStatus(N64_Status& output);
-
   //Send bytes starting at input to controller, length is number of bytes to send.
-  void send(char const* input, unsigned int length);
+  void send(char const* input, int length);
 
   //Receive bytes starting at output from controller, length is number of bytes to receive.
-  void receive(char* output, unsigned int length);
+  void receive(char* output, int length);
 
 private:
   //Hex representation of the data pin.

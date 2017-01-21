@@ -23,7 +23,7 @@ N64_Interface::N64_Interface(int data_pin) {
 }
 
 
-inline void N64_Interface::send(char const* input, unsigned int length) {
+void N64_Interface::send(char const* input, int length) {
  
   for (int i = 0; i < length; i++) {
     char currentByte = input[i];
@@ -58,7 +58,7 @@ inline void N64_Interface::send(char const* input, unsigned int length) {
   high();
 }
 
-inline void N64_Interface::receive(char* output, unsigned int length) {
+void N64_Interface::receive(char* output, int length) {
 
   char mask = mask_; //Create a local copy for speed reasons
   
@@ -74,7 +74,7 @@ inline void N64_Interface::receive(char* output, unsigned int length) {
       //wait 1 microsecond
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
 
-      bool currentBit = (PIND & mask) != 0;
+      bool currentBit = (PIND & mask) != 0; //query the line
       currentByte <<= 1; //shift left
       currentByte |= currentBit; //add latest bit
 
@@ -110,10 +110,10 @@ void PrintN64Status(const N64_Status& status)
     Serial.print (F("C up "));
   if (status.buttons2 &  BUTTON_C_DOWN)
     Serial.print (F("C down "));
-  if (status.buttons2 &  BUTTON_R)
-    Serial.print (F("R "));
   if (status.buttons2 &  BUTTON_L)
     Serial.print (F("L "));
+  if (status.buttons2 &  BUTTON_R)
+    Serial.print (F("R "));
   if (status.buttons1 &  BUTTON_D_RIGHT)
     Serial.print (F("D right "));
   if (status.buttons1 &  BUTTON_D_LEFT)
@@ -124,12 +124,13 @@ void PrintN64Status(const N64_Status& status)
     Serial.print (F("D down "));
   if (status.buttons1 &  BUTTON_START)
     Serial.print (F("Start "));
-  if (status.buttons1 &  BUTTON_Z)
-    Serial.print (F("Z "));
-  if (status.buttons1 &  BUTTON_B)
-    Serial.print (F("B "));
   if (status.buttons1 &  BUTTON_A)
     Serial.print (F("A "));
+  if (status.buttons1 &  BUTTON_B)
+    Serial.print (F("B "));
+  if (status.buttons1 &  BUTTON_Z)
+    Serial.print (F("Z "));
+ 
 
   if (status.buttons1 == 0 && status.buttons2 == 0)
     Serial.print (F("(no buttons)"));
@@ -138,18 +139,12 @@ void PrintN64Status(const N64_Status& status)
   Serial.flush();
 }
 
-void N64_Interface::getStatus(N64_Status& output)
-{
-  send(&COMMAND_STATUS, 1); //Pass the status command byte to the send() function.
-  receive((char*)&output, status_size); //Pass the status struct to the receive() function.
-}
-
-inline void N64_Interface::high()
+void N64_Interface::high()
 {
   DDRD &= ~mask_; //Make data pin an input (high impedence, simulates high)
 }
 
-inline void N64_Interface::low()
+void N64_Interface::low()
 {
   DDRD |= mask_; //Make data pin an output (low)
 }
