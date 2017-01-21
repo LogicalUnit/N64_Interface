@@ -16,14 +16,14 @@
 #define NOP asm volatile ("nop\n\t")
 
 
-N64_Interface::N64_Interface(int data_pin): mask_(1<<data_pin) {
-  //pinMode(data_pin, INPUT); // do not make INPUT_PULLUP! This will fry the controller!
+N64_Interface::N64_Interface(int data_pin) {
+  mask_ = 1<<data_pin;
   digitalWrite(data_pin, LOW); //do not make HIGH! This will fry the controller!
   high(); //high means idle
 }
 
 
-void N64_Interface::send(char const* input, unsigned int length) {
+inline void N64_Interface::send(char const* input, unsigned int length) {
  
   for (int i = 0; i < length; i++) {
     char currentByte = input[i];
@@ -58,7 +58,7 @@ void N64_Interface::send(char const* input, unsigned int length) {
   high();
 }
 
-void N64_Interface::receive(char* output, unsigned int length) {
+inline void N64_Interface::receive(char* output, unsigned int length) {
 
   char mask = mask_; //Create a local copy for speed reasons
   
@@ -74,8 +74,9 @@ void N64_Interface::receive(char* output, unsigned int length) {
       //wait 1 microsecond
       NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP; NOP;
 
+      bool currentBit = (PIND & mask) != 0;
       currentByte <<= 1; //shift left
-      currentByte |= (PIND & mask) != 0; //add latest bit
+      currentByte |= currentBit; //add latest bit
 
       while(!(PIND & mask)); //wait for high
     }
