@@ -19,6 +19,7 @@ void setup() {
 
   Serial.begin(115200);
   Serial.println("Starting");
+  Serial.flush();
 
   //Start by clearing the status variables.
   memset(&status, 0, status_size);
